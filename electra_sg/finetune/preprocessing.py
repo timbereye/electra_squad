@@ -184,6 +184,7 @@ class Preprocessor(object):
                 example[name] = tf.cast(tensor, tf.int32)
             else:
                 example[name] = tensor
+
         # if "squad_dep_mask_len" in example:
         #     mask_shape = tf.parallel_stack([example["squad_dep_mask_len"]])
         #     example["squad_dep_mask_x"] = tf.reshape(example["squad_dep_mask_x"], mask_shape)

@@ -38,6 +38,7 @@ from functools import reduce
 
 # dependence parser
 import stanza
+
 nlp = stanza.Pipeline(lang='en', processors='tokenize,pos,lemma,depparse')
 
 
@@ -441,6 +442,7 @@ class QATask(task.Task):
     print(*[f'id: {word.id}\tword: {word.text}\thead id: {word.head}\thead: {sent.words[word.head-1].text
     if word.head > 0 else "root"}\tdeprel: {word.deprel}' for sent in doc.sentences for word in sent.words], sep='\n')
     """
+
     # 将dependence matrix作为attention mask引入模型，这里我们只考虑context
     def featurize(self, example: QAExample, is_training, log=False,
                   for_eval=False):
@@ -601,8 +603,8 @@ class QATask(task.Task):
             dep_mask_x = []
             dep_mask_y = []
             shift = len(query_tokens) + 2
-            piece_mask_matrix = all_doc_tokens_dep_mask[doc_span.start:doc_span.start+doc_span.length,
-                                doc_span.start:doc_span.start+doc_span.length]
+            piece_mask_matrix = all_doc_tokens_dep_mask[doc_span.start:doc_span.start + doc_span.length,
+                                doc_span.start:doc_span.start + doc_span.length]
             shape = piece_mask_matrix.shape[0]
             for i in range(shape):
                 for j in range(shape):
