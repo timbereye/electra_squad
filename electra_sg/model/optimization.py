@@ -158,6 +158,7 @@ class AdamWeightDecayOptimizer(tf.train.Optimizer):
                 if not update_for_var:
                     raise ValueError("No learning rate specified for variable", var)
             assignments = []
+            print(grads_and_vars)
             for key, key_grads_and_vars in key_to_grads_and_vars.items():
                 assignments += self._apply_gradients(key_grads_and_vars,
                                                      self.learning_rate[key])
