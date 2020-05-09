@@ -95,10 +95,10 @@ def model_fn_builder(config: configure_finetuning.FinetuningConfig, tasks,
             assignment_map, _ = modeling.get_assignment_map_from_checkpoint(
                 tvars, init_checkpoint)
             # init dependence layers from pretrained checkpoint
-            dep_assignment_map, _ = modeling.get_assignment_map_from_checkpoint(
-                tvars, init_checkpoint, prefix="task_specific/squad/dependence/")
+            dep_assignment_map, _ = modeling.get_dep_assignment_map_from_checkpoint(
+                tvars, init_checkpoint, prefix="task_specific/squad/dependence/", odd="electra/encoder/")
             print(dep_assignment_map)
-            print(tf.trainable_variables())
+
             if config.use_tpu:
                 def tpu_scaffold():
                     tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
