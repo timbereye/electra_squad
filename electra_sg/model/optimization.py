@@ -96,7 +96,6 @@ class AdamWeightDecayOptimizer(tf.train.Optimizer):
                 continue
 
             param_name = self._get_variable_name(param.name)
-            print(param_name)
 
             m = tf.get_variable(
                 name=param_name + "/adam_m",
