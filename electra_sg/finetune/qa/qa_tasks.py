@@ -676,7 +676,7 @@ class QATask(task.Task):
         # dep_mask = tf.map_fn(fn, (dep_mask_x, dep_mask_y, dep_mask_len), dtype=tf.float32)
         dep_mask = features["squad_dep_mask"]
         dep_mask = tf.reshape(dep_mask, [-1, self.config.max_seq_length, self.config.max_seq_length])
-        with tf.variable_scope("dependence"):
+        with tf.variable_scope("dependence/electra/encoder"):
             bert_config = bert_model.config
             dep_att_output, _ = modeling.transformer_model(
                 input_tensor=final_hidden,
