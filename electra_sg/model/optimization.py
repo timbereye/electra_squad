@@ -132,8 +132,8 @@ class AdamWeightDecayOptimizer(tf.train.Optimizer):
             # layerwise lr
             lr_weight = 1.0
             if "/dependence/" in param_name:
-              print(param_name)
-              lr_weight = 4.0
+                print(param_name)
+                lr_weight = 4.0
             update_with_lr = learning_rate * update
             next_param = param - update_with_lr
 
