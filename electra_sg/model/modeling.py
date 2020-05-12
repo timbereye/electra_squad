@@ -375,10 +375,12 @@ def get_dep_assignment_map_from_checkpoint(tvars, init_checkpoint, prefix="", od
     assignment_map = collections.OrderedDict()
     for x in tf.train.list_variables(init_checkpoint):
         (name, var) = (x[0], x[1])
-        name_ = name[odd_len:] if len(name) > odd_len else ""
-        if prefix + name_ not in name_to_variable:
+        if "layer_23" not in name:
             continue
-        assignment_map[name] = prefix + name_
+        name_ = name[odd_len:] if len(name) > odd_len else ""
+        if prefix + name_.replace("layer_23", "layer_0") not in name_to_variable:
+            continue
+        assignment_map[name] = prefix + name_.replace("layer_23", "layer_0")
         initialized_variable_names[name] = 1
         initialized_variable_names[name + ":0"] = 1
 
