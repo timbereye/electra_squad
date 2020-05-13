@@ -674,26 +674,26 @@ class QATask(task.Task):
         #     return dt
         #
         # dep_mask = tf.map_fn(fn, (dep_mask_x, dep_mask_y, dep_mask_len), dtype=tf.float32)
-        dep_mask = features["squad_dep_mask"]
-        dep_mask = tf.reshape(dep_mask, [-1, self.config.max_seq_length, self.config.max_seq_length])
-        with tf.variable_scope("dependence"):
-            bert_config = bert_model.config
-            dep_att_output, _ = modeling.transformer_model(
-                input_tensor=final_hidden,
-                attention_mask=dep_mask,
-                hidden_size=bert_config.hidden_size,
-                num_hidden_layers=1,
-                num_attention_heads=bert_config.num_attention_heads,
-                intermediate_size=bert_config.intermediate_size,
-                intermediate_act_fn=modeling.get_activation(bert_config.hidden_act),
-                hidden_dropout_prob=bert_config.hidden_dropout_prob,
-                attention_probs_dropout_prob=bert_config.attention_probs_dropout_prob,
-                initializer_range=bert_config.initializer_range,
-                do_return_all_layers=False)
-        weight = tf.get_variable(name="weight", dtype=tf.float32, initializer=tf.zeros_initializer(),
-                                 shape=(), trainable=True)
-        weight = tf.sigmoid(weight)
-        final_hidden = weight * final_hidden + (1 - weight) * dep_att_output
+        # dep_mask = features["squad_dep_mask"]
+        # dep_mask = tf.reshape(dep_mask, [-1, self.config.max_seq_length, self.config.max_seq_length])
+        # with tf.variable_scope("dependence"):
+        #     bert_config = bert_model.config
+        #     dep_att_output, _ = modeling.transformer_model(
+        #         input_tensor=final_hidden,
+        #         attention_mask=dep_mask,
+        #         hidden_size=bert_config.hidden_size,
+        #         num_hidden_layers=1,
+        #         num_attention_heads=bert_config.num_attention_heads,
+        #         intermediate_size=bert_config.intermediate_size,
+        #         intermediate_act_fn=modeling.get_activation(bert_config.hidden_act),
+        #         hidden_dropout_prob=bert_config.hidden_dropout_prob,
+        #         attention_probs_dropout_prob=bert_config.attention_probs_dropout_prob,
+        #         initializer_range=bert_config.initializer_range,
+        #         do_return_all_layers=False)
+        # weight = tf.get_variable(name="weight", dtype=tf.float32, initializer=tf.zeros_initializer(),
+        #                          shape=(), trainable=True)
+        # weight = tf.sigmoid(weight)
+        # final_hidden = weight * final_hidden + (1 - weight) * dep_att_output
 
         final_hidden_shape = modeling.get_shape_list(final_hidden, expected_rank=3)
         batch_size = final_hidden_shape[0]
