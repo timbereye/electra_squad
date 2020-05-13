@@ -1,0 +1,40 @@
+ctpu up --tpu-size=v3-8 --zone=europe-west4-a --tf-version=1.15
+
+gcloud compute instances list --zones=europe-west4-a
+gcloud compute tpus list --zone=europe-west4-a
+
+
+python3 run_finetuning.py   --data-dir=gs://squad_z/electra_data   --model-name=electra_large   --hparams '{"model_size": "large", "task_names": ["squad"], "num_train_epochs": 2, "use_tpu": true, "num_tpu_cores": 8, "tpu_name": "sugarholdh", "train_batch_size": 32, "eval_batch_size": 32, "predict_batch_size": 32, "max_seq_length": 512, "learning_rate": 5e-05, "use_tfrecords_if_existing": true, "num_trials": 1, "do_train": true, "do_eval": true, "save_checkpoints_steps": 100000 }' | tee log
+
+
+git clone https://github.com/HuaYZhao/electra.git -b answer_at
+
+
+gcloud config set project squad-z-276401
+gcloud compute ssh --zone europe-west4-a cx
+
+tmux attach -t 0
+
+
+
+gsutil cp -r gs://squad_z/electra_data/models/electra_large/finetuning_models_bk/squad_model_2 gs://squad_z/electra_data/models/atrl8862
+gsutil cp gs://squad_z/electra_data/models/electra_large/vocab.txt gs://squad_z/electra_data/models/atrl8862/vocab.txt
+
+
+
+gcloud config set project squad-z-276401
+gcloud config set compute/zone europe-west4-a
+gcloud compute instances create cx \
+       --machine-type=n1-standard-2 \
+       --image-project=ubuntu-os-cloud \
+       --image-family=ubuntu-1804-lts  \
+       --boot-disk-size=250g \
+       --scopes=cloud-platform
+       
+       
+       
+sudo apt-get update
+sudo apt-get install python3-pip
+python3 -m pip install --upgrade pip
+pip3 install stanza scipy sklearn tensorflow==1.15.2
+pip3 install --upgrade google-api-python-client oauth2client
