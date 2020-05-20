@@ -778,34 +778,47 @@ class QATask(task.Task):
         losses = (start_loss + end_loss) / 2.0
 
         # plausible answer loss
-        def compute_loss_for_plau(start_logits, end_logits, start_positions, end_positions, start_positions_true,
-                                  alpha=1.0, beta=1.0):
-            start_probs = tf.nn.softmax(start_logits)
-            end_probs = tf.nn.softmax(end_logits)
-            log_neg_start_probs = tf.log(tf.clip_by_value(1 - start_probs, 1e-30, 1))
-            log_neg_end_probs = tf.log(tf.clip_by_value(1 - end_probs, 1e-30, 1))
-            start_positions_mask = tf.cast(tf.sequence_mask(start_positions, maxlen=seq_length), tf.float32)
-            end_positions_mask = tf.cast(tf.sequence_mask(end_positions + 1, maxlen=seq_length), tf.float32)
-            positions_mask = end_positions_mask - start_positions_mask
-            one_hot_positions = tf.one_hot(
-                start_positions_true, depth=seq_length, dtype=tf.float32)
-            positions_mask = positions_mask * (1 - one_hot_positions)  # 忽略切出来的无答案
+        plau_logits = tf.layers.dense(final_hidden, 2)
+        plau_logits = tf.reshape(plau_logits, [batch_size, seq_length, 2])
+        plau_logits = tf.transpose(plau_logits, [2, 0, 1])
+        unstacked_logits = tf.unstack(plau_logits, axis=0)
+        (plau_start_logits, plau_end_logits) = (unstacked_logits[0], unstacked_logits[1])
+        plau_start_logits += 1000.0 * (answer_mask - 1)
+        plau_end_logits += 1000.0 * (answer_mask - 1)
+        plau_start_positions = features[self.name + "_plau_answer_start"]
+        plau_end_positions = features[self.name + "_plau_answer_end"]
+        plau_start_loss = compute_loss(plau_start_logits, plau_start_positions)
+        plau_end_loss = compute_loss(plau_end_logits, plau_end_positions)
+        losses += (plau_start_loss + plau_end_loss) / 2.0
 
-            # mask_0 = tf.zeros([batch_size, 1])
-            # mask_1 = tf.ones([batch_size, seq_length - 1])
-            # zero_mask = tf.concat([mask_0, mask_1], axis=1)
-            # positions_mask = positions_mask * zero_mask
-            loss1 = - tf.reduce_sum(positions_mask * log_neg_start_probs, axis=-1)
-            loss1 = tf.reduce_mean(loss1)
-            loss2 = - tf.reduce_sum(positions_mask * log_neg_end_probs, axis=-1)
-            loss2 = tf.reduce_mean(loss2)
-            return (loss1 * alpha + loss2 * beta) * 0.5
-
-        plau_loss = compute_loss_for_plau(start_logits, end_logits,
-                                          features[self.name + "_plau_answer_start"],
-                                          features[self.name + "_plau_answer_end"],
-                                          features[self.name + "_start_positions"], 1.0, 1.0)
-        losses += plau_loss
+        # def compute_loss_for_plau(start_logits, end_logits, start_positions, end_positions, start_positions_true,
+        #                           alpha=1.0, beta=1.0):
+        #     start_probs = tf.nn.softmax(start_logits)
+        #     end_probs = tf.nn.softmax(end_logits)
+        #     log_neg_start_probs = tf.log(tf.clip_by_value(1 - start_probs, 1e-30, 1))
+        #     log_neg_end_probs = tf.log(tf.clip_by_value(1 - end_probs, 1e-30, 1))
+        #     start_positions_mask = tf.cast(tf.sequence_mask(start_positions, maxlen=seq_length), tf.float32)
+        #     end_positions_mask = tf.cast(tf.sequence_mask(end_positions + 1, maxlen=seq_length), tf.float32)
+        #     positions_mask = end_positions_mask - start_positions_mask
+        #     one_hot_positions = tf.one_hot(
+        #         start_positions_true, depth=seq_length, dtype=tf.float32)
+        #     positions_mask = positions_mask * (1 - one_hot_positions)  # 忽略切出来的无答案
+        #
+        #     # mask_0 = tf.zeros([batch_size, 1])
+        #     # mask_1 = tf.ones([batch_size, seq_length - 1])
+        #     # zero_mask = tf.concat([mask_0, mask_1], axis=1)
+        #     # positions_mask = positions_mask * zero_mask
+        #     loss1 = - tf.reduce_sum(positions_mask * log_neg_start_probs, axis=-1)
+        #     loss1 = tf.reduce_mean(loss1)
+        #     loss2 = - tf.reduce_sum(positions_mask * log_neg_end_probs, axis=-1)
+        #     loss2 = tf.reduce_mean(loss2)
+        #     return (loss1 * alpha + loss2 * beta) * 0.5
+        #
+        # plau_loss = compute_loss_for_plau(start_logits, end_logits,
+        #                                   features[self.name + "_plau_answer_start"],
+        #                                   features[self.name + "_plau_answer_end"],
+        #                                   features[self.name + "_start_positions"], 1.0, 1.0)
+        # losses += plau_loss
 
         answerable_logit = tf.zeros([batch_size])
         if self.config.answerable_classifier:
