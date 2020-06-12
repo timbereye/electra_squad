@@ -98,6 +98,7 @@ def model_fn_builder(config: configure_finetuning.FinetuningConfig, tasks,
             # dep_assignment_map, _ = modeling.get_dep_assignment_map_from_checkpoint(
             #     tvars, init_checkpoint, prefix="task_specific/squad/dependence/", odd="electra/encoder/")
             # print(dep_assignment_map)
+            var_map = modeling.get_var_map_from_checkpoint(tvars, init_checkpoint)
 
             if config.use_tpu:
                 def tpu_scaffold():
@@ -118,7 +119,9 @@ def model_fn_builder(config: configure_finetuning.FinetuningConfig, tasks,
                 use_tpu=config.use_tpu,
                 warmup_proportion=config.warmup_proportion,
                 layerwise_lr_decay_power=config.layerwise_lr_decay,
-                n_transformer_layers=model.bert_config.num_hidden_layers
+                n_transformer_layers=model.bert_config.num_hidden_layers,
+                name="recadam",
+                var_map=var_map
             )
             output_spec = tf.estimator.tpu.TPUEstimatorSpec(
                 mode=mode,
