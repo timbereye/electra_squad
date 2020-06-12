@@ -218,7 +218,7 @@ def _get_layer_lrs(learning_rate, layer_decay, n_layers):
 
 def anneal_function(function, step, k, t0, weight):
     if function == 'sigmoid':
-        return (1 / (1 + tf.exp(-k * (step - t0)))) * weight
+        return tf.to_float(1 / (1 + tf.exp(-k * (step - t0)))) * weight
     elif function == 'linear':
         return tf.minimum(1, step / t0) * weight
     elif function == 'constant':
