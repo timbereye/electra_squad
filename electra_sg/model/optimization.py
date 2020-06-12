@@ -248,14 +248,6 @@ class RecAdamOptimizer(AdamWeightDecayOptimizer):
         # anneal_w (float): a hyperparam for the anneal function, decide the scale of the curve. Default 1.0.
         # pretrain_cof (float): the coefficient of the quadratic penalty. Default 5000.0.
         # pretrain_params (list of tensors): the corresponding group of params in the pretrained model.
-        if learning_rate < 0.0:
-            raise ValueError("Invalid learning rate: {} - should be >= 0.0".format(lr))
-        if not 0.0 <= beta_1 < 1.0:
-            raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(beta_1))
-        if not 0.0 <= beta_2 < 1.0:
-            raise ValueError("Invalid beta parameter: {} - should be in [0.0, 1.0[".format(beta_2))
-        if not 0.0 <= epsilon:
-            raise ValueError("Invalid epsilon value: {} - should be >= 0.0".format(epsilon))
         super(RecAdamOptimizer, self).__init__(learning_rate, weight_decay_rate, beta_1, beta_2, epsilon,
                                                exclude_from_weight_decay, name)
         self.anneal_fun = anneal_fun
