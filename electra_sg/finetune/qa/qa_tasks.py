@@ -59,7 +59,7 @@ class QAExample(task.Example):
                  all_doc_tokens=None,
                  orig_to_tok_index=None,
                  tok_to_orig_index=None,
-                 all_doc_tokens_dep_mask=None,
+                 # all_doc_tokens_dep_mask=None,
                  plau_answer_start=None,
                  plau_answer_end=None,
                  plau_answer_text=None):
@@ -76,7 +76,7 @@ class QAExample(task.Example):
         self.all_doc_tokens = all_doc_tokens
         self.orig_to_tok_index = orig_to_tok_index
         self.tok_to_orig_index = tok_to_orig_index
-        self.all_doc_tokens_dep_mask = all_doc_tokens_dep_mask
+        # self.all_doc_tokens_dep_mask = all_doc_tokens_dep_mask
         self.plau_answer_start = plau_answer_start
         self.plau_answer_end = plau_answer_end
         self.plau_answer_text = plau_answer_text
@@ -194,7 +194,7 @@ class QATask(task.Task):
         self._tokenizer = tokenizer
         self._examples = {}
         self.v2 = v2
-        self.dep_max = 5120
+        # self.dep_max = 5120
 
     def _add_examples(self, examples, example_failures, paragraph, split):
         paragraph_text = paragraph["context"]
@@ -212,98 +212,98 @@ class QATask(task.Task):
                 prev_is_whitespace = False
             char_to_word_offset.append(len(doc_tokens) - 1)
 
-        def parse(sentence):
-            """ 解析一个句子，返回dependence heads etc """
-            doc = nlp(sentence)
-            heads = []
-            words = []
-            for sent in doc.sentences:
-                heads_tmp = []
-                num_tmp = sum([len(x) if x else 0 for x in heads])
-                for word in sent.words:
-                    words.append(word.text)
-                    if word.head == 0:
-                        heads_tmp.append(0)
-                    else:
-                        heads_tmp.append(word.head + num_tmp)
-                heads.append(heads_tmp)
-            heads = reduce(lambda x, y: x + y, heads)
-            return heads, words
-
-        def parse_and_trim(tokens):
-            """ 输入空格分词后的tokens list, parse后按照输入调整heads """
-            heads, words = parse(" ".join(tokens))
-            t2w = {}
-            w2t = {}
-            ti = 0
-            wi = 0
-            last_move = None  # 交替移动指针的控制
-            while (ti < len(tokens)) and (wi < len(words)):
-                if tokens[ti] == words[wi]:
-                    t2w[ti] = wi
-                    w2t[wi] = ti
-                    ti += 1
-                    wi += 1
-                    last_move = None
-                elif tokens[ti] in words[wi]:
-                    t2w[ti] = wi
-                    if wi not in w2t:
-                        w2t[wi] = ti
-                    ti += 1
-                    last_move = 't'
-                elif words[wi] in tokens[ti]:
-                    w2t[wi] = ti
-                    if ti not in t2w:
-                        t2w[ti] = wi
-                    wi += 1
-                    last_move = 'w'
-                else:
-                    if last_move == 'w':
-                        ti += 1
-                        last_move = 't'
-                    elif last_move == 't':
-                        wi += 1
-                        last_move = 'w'
-                    else:
-                        wi += 1
-                        ti += 1
-                        last_move = None
-            heads_ = []
-            for ti in range(len(tokens)):
-                wi = t2w.get(ti, None)
-                if wi is not None:
-                    h = heads[wi]
-                    if h == 0:
-                        heads_.append(0)
-                    else:
-                        h_ = w2t.get(h - 1, None)
-                        if h_ is not None:
-                            heads_.append(h_ + 1)
-                        else:
-                            heads_.append(ti + 1)
-                else:
-                    heads_.append(ti + 1)
-            return heads_
-
-        def heads_2_dep_matrix(heads):
-            """ 将dependence heads转换为dependence matrix """
-            arr = np.diag((1,) * len(heads))
-            for i, j in enumerate(heads):
-                if j != 0:
-                    arr[i, j - 1] = 1
-            while True:  # 传递依赖
-                arr1 = np.matmul(arr, arr)
-                arr1[arr1 > 1] = 1
-                if (arr1 == arr).all():
-                    break
-                else:
-                    arr = arr1
-            return arr
+        # def parse(sentence):
+        #     """ 解析一个句子，返回dependence heads etc """
+        #     doc = nlp(sentence)
+        #     heads = []
+        #     words = []
+        #     for sent in doc.sentences:
+        #         heads_tmp = []
+        #         num_tmp = sum([len(x) if x else 0 for x in heads])
+        #         for word in sent.words:
+        #             words.append(word.text)
+        #             if word.head == 0:
+        #                 heads_tmp.append(0)
+        #             else:
+        #                 heads_tmp.append(word.head + num_tmp)
+        #         heads.append(heads_tmp)
+        #     heads = reduce(lambda x, y: x + y, heads)
+        #     return heads, words
+        #
+        # def parse_and_trim(tokens):
+        #     """ 输入空格分词后的tokens list, parse后按照输入调整heads """
+        #     heads, words = parse(" ".join(tokens))
+        #     t2w = {}
+        #     w2t = {}
+        #     ti = 0
+        #     wi = 0
+        #     last_move = None  # 交替移动指针的控制
+        #     while (ti < len(tokens)) and (wi < len(words)):
+        #         if tokens[ti] == words[wi]:
+        #             t2w[ti] = wi
+        #             w2t[wi] = ti
+        #             ti += 1
+        #             wi += 1
+        #             last_move = None
+        #         elif tokens[ti] in words[wi]:
+        #             t2w[ti] = wi
+        #             if wi not in w2t:
+        #                 w2t[wi] = ti
+        #             ti += 1
+        #             last_move = 't'
+        #         elif words[wi] in tokens[ti]:
+        #             w2t[wi] = ti
+        #             if ti not in t2w:
+        #                 t2w[ti] = wi
+        #             wi += 1
+        #             last_move = 'w'
+        #         else:
+        #             if last_move == 'w':
+        #                 ti += 1
+        #                 last_move = 't'
+        #             elif last_move == 't':
+        #                 wi += 1
+        #                 last_move = 'w'
+        #             else:
+        #                 wi += 1
+        #                 ti += 1
+        #                 last_move = None
+        #     heads_ = []
+        #     for ti in range(len(tokens)):
+        #         wi = t2w.get(ti, None)
+        #         if wi is not None:
+        #             h = heads[wi]
+        #             if h == 0:
+        #                 heads_.append(0)
+        #             else:
+        #                 h_ = w2t.get(h - 1, None)
+        #                 if h_ is not None:
+        #                     heads_.append(h_ + 1)
+        #                 else:
+        #                     heads_.append(ti + 1)
+        #         else:
+        #             heads_.append(ti + 1)
+        #     return heads_
+        #
+        # def heads_2_dep_matrix(heads):
+        #     """ 将dependence heads转换为dependence matrix """
+        #     arr = np.diag((1,) * len(heads))
+        #     for i, j in enumerate(heads):
+        #         if j != 0:
+        #             arr[i, j - 1] = 1
+        #     while True:  # 传递依赖
+        #         arr1 = np.matmul(arr, arr)
+        #         arr1[arr1 > 1] = 1
+        #         if (arr1 == arr).all():
+        #             break
+        #         else:
+        #             arr = arr1
+        #     return arr
 
         tok_to_orig_index = []
         orig_to_tok_index = []
         all_doc_tokens = []
-        heads = parse_and_trim(doc_tokens)  # dependence heads
+        # heads = parse_and_trim(doc_tokens)  # dependence heads
         for (i, token) in enumerate(doc_tokens):
             orig_to_tok_index.append(len(all_doc_tokens))
             sub_tokens = self._tokenizer.tokenize(token)
@@ -311,21 +311,21 @@ class QATask(task.Task):
                 tok_to_orig_index.append(i)
                 all_doc_tokens.append(sub_token)
 
-        heads_piece = []
-        last_orig_index = None
-        for ind in range(len(all_doc_tokens)):
-            orig_index = tok_to_orig_index[ind]
-            if orig_index == last_orig_index:
-                heads_piece.append(ind)
-            else:
-                h = heads[orig_index]
-                if h == 0:
-                    heads_piece.append(0)
-                else:
-                    heads_piece.append(orig_to_tok_index[h - 1] + 1)
-                last_orig_index = orig_index
+        # heads_piece = []
+        # last_orig_index = None
+        # for ind in range(len(all_doc_tokens)):
+        #     orig_index = tok_to_orig_index[ind]
+        #     if orig_index == last_orig_index:
+        #         heads_piece.append(ind)
+        #     else:
+        #         h = heads[orig_index]
+        #         if h == 0:
+        #             heads_piece.append(0)
+        #         else:
+        #             heads_piece.append(orig_to_tok_index[h - 1] + 1)
+        #         last_orig_index = orig_index
 
-        all_doc_tokens_dep_mask = heads_2_dep_matrix(heads_piece)
+        # all_doc_tokens_dep_mask = heads_2_dep_matrix(heads_piece)
 
         for qa in paragraph["qas"]:
             qas_id = qa["id"] if "id" in qa else None
@@ -414,7 +414,7 @@ class QATask(task.Task):
                 all_doc_tokens=all_doc_tokens,
                 orig_to_tok_index=orig_to_tok_index,
                 tok_to_orig_index=tok_to_orig_index,
-                all_doc_tokens_dep_mask=all_doc_tokens_dep_mask,
+                # all_doc_tokens_dep_mask=all_doc_tokens_dep_mask,
                 plau_answer_start=plau_answer_start_w,
                 plau_answer_text=plau_answer_text,
                 plau_answer_end=plau_answer_end_w,
@@ -429,9 +429,9 @@ class QATask(task.Task):
             feature_spec.FeatureSpec(self.name + "_is_impossible", []),
             feature_spec.FeatureSpec(self.name + "_plau_answer_start", []),
             feature_spec.FeatureSpec(self.name + "_plau_answer_end", []),
-            feature_spec.FeatureSpec(self.name + "_dep_mask_x", [self.dep_max]),
-            feature_spec.FeatureSpec(self.name + "_dep_mask_y", [self.dep_max]),
-            feature_spec.FeatureSpec(self.name + "_dep_mask_len", []),
+            # feature_spec.FeatureSpec(self.name + "_dep_mask_x", [self.dep_max]),
+            # feature_spec.FeatureSpec(self.name + "_dep_mask_y", [self.dep_max]),
+            # feature_spec.FeatureSpec(self.name + "_dep_mask_len", []),
         ]
 
     """
@@ -455,7 +455,7 @@ class QATask(task.Task):
         all_doc_tokens = example.all_doc_tokens
         orig_to_tok_index = example.orig_to_tok_index
         tok_to_orig_index = example.tok_to_orig_index
-        all_doc_tokens_dep_mask = example.all_doc_tokens_dep_mask
+        # all_doc_tokens_dep_mask = example.all_doc_tokens_dep_mask
 
         tok_start_position = None
         tok_end_position = None
@@ -600,29 +600,29 @@ class QATask(task.Task):
                     utils.log("end_position: %d" % end_position)
                     utils.log("answer: %s" % (tokenization.printable_text(answer_text)))
 
-            dep_mask_x = []
-            dep_mask_y = []
-            shift = len(query_tokens) + 2
-            piece_mask_matrix = all_doc_tokens_dep_mask[doc_span.start:doc_span.start + doc_span.length,
-                                doc_span.start:doc_span.start + doc_span.length]
-            shape = piece_mask_matrix.shape[0]
-            for i in range(shape):
-                for j in range(shape):
-                    if piece_mask_matrix[i, j] == 1:
-                        dep_mask_x.append(i + shift)
-                        dep_mask_y.append(j + shift)
-            dep_mask_len = len(dep_mask_x)
-            if len(dep_mask_x) > self.dep_max:
-                tf.logging.waring("dep mask over dep_max.")
-                dep_mask_x = dep_mask_x[:self.dep_max]
-                dep_mask_y = dep_mask_y[:self.dep_max]
-                dep_mask_len = self.dep_max
-            else:
-                pad_len = self.dep_max - len(dep_mask_x)
-                while pad_len:
-                    dep_mask_x.append(-1)
-                    dep_mask_y.append(-1)
-                    pad_len -= 1
+            # dep_mask_x = []
+            # dep_mask_y = []
+            # shift = len(query_tokens) + 2
+            # piece_mask_matrix = all_doc_tokens_dep_mask[doc_span.start:doc_span.start + doc_span.length,
+            #                     doc_span.start:doc_span.start + doc_span.length]
+            # shape = piece_mask_matrix.shape[0]
+            # for i in range(shape):
+            #     for j in range(shape):
+            #         if piece_mask_matrix[i, j] == 1:
+            #             dep_mask_x.append(i + shift)
+            #             dep_mask_y.append(j + shift)
+            # dep_mask_len = len(dep_mask_x)
+            # if len(dep_mask_x) > self.dep_max:
+            #     tf.logging.waring("dep mask over dep_max.")
+            #     dep_mask_x = dep_mask_x[:self.dep_max]
+            #     dep_mask_y = dep_mask_y[:self.dep_max]
+            #     dep_mask_len = self.dep_max
+            # else:
+            #     pad_len = self.dep_max - len(dep_mask_x)
+            #     while pad_len:
+            #         dep_mask_x.append(-1)
+            #         dep_mask_y.append(-1)
+            #         pad_len -= 1
 
             features = {
                 "task_id": self.config.task_names.index(self.name),
@@ -630,9 +630,9 @@ class QATask(task.Task):
                 "input_ids": input_ids,
                 "input_mask": input_mask,
                 "segment_ids": segment_ids,
-                self.name + "_dep_mask_x": dep_mask_x,
-                self.name + "_dep_mask_y": dep_mask_y,
-                self.name + "_dep_mask_len": dep_mask_len,
+                # self.name + "_dep_mask_x": dep_mask_x,
+                # self.name + "_dep_mask_y": dep_mask_y,
+                # self.name + "_dep_mask_len": dep_mask_len,
             }
             if for_eval:
                 features.update({

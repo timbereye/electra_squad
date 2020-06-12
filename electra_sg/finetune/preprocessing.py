@@ -191,20 +191,20 @@ class Preprocessor(object):
         #     example["squad_dep_mask_y"] = tf.reshape(example["squad_dep_mask_y"], mask_shape)
         # print(example)
 
-        def fn(xyz):
-            x = xyz[0]
-            y = xyz[1]
-            length = xyz[2]
-            x = x[:length]
-            y = y[:length]
-            st = tf.SparseTensor(indices=tf.cast(tf.transpose([x, y]), tf.int64),
-                                 values=tf.ones_like(x, dtype=tf.float32),
-                                 dense_shape=[self._config.max_seq_length, self._config.max_seq_length])
-            dt = tf.sparse_tensor_to_dense(st)
-            return dt
+        # def fn(xyz):
+        #     x = xyz[0]
+        #     y = xyz[1]
+        #     length = xyz[2]
+        #     x = x[:length]
+        #     y = y[:length]
+        #     st = tf.SparseTensor(indices=tf.cast(tf.transpose([x, y]), tf.int64),
+        #                          values=tf.ones_like(x, dtype=tf.float32),
+        #                          dense_shape=[self._config.max_seq_length, self._config.max_seq_length])
+        #     dt = tf.sparse_tensor_to_dense(st)
+        #     return dt
 
-        if "squad_dep_mask_len" in example:
-            example["squad_dep_mask"] = fn([example["squad_dep_mask_x"], example["squad_dep_mask_y"],
-                                            example["squad_dep_mask_len"]])
+        # if "squad_dep_mask_len" in example:
+        #     example["squad_dep_mask"] = fn([example["squad_dep_mask_x"], example["squad_dep_mask_y"],
+        #                                     example["squad_dep_mask_len"]])
 
         return example
