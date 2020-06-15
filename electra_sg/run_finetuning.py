@@ -120,7 +120,7 @@ def model_fn_builder(config: configure_finetuning.FinetuningConfig, tasks,
                 warmup_proportion=config.warmup_proportion,
                 layerwise_lr_decay_power=config.layerwise_lr_decay,
                 n_transformer_layers=model.bert_config.num_hidden_layers,
-                name="recadam",
+                name="adamw",
                 var_map=var_map
             )
             output_spec = tf.estimator.tpu.TPUEstimatorSpec(
