@@ -376,7 +376,7 @@ def get_var_map_from_checkpoint(tvars, init_checkpoint, prefix=""):
         value = tf.train.load_variable(init_checkpoint, name)
         if prefix + name not in name_to_variable:
             continue
-        var_map[prefix + name] = tf.constant(value, var)
+        var_map[prefix + name] = tf.constant(value, shape=var)
 
     return var_map
 
