@@ -298,7 +298,7 @@ class RecAdamOptimizer(AdamWeightDecayOptimizer):
                                             self.anneal_t0, self.anneal_w)
             if param_name in self.pretrain_params:
                 print(param)
-                print(self.pretrain_params[param_name])
+                print(self.pretrain_params[param_name].shape)
                 update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof * \
                          (param - self.pretrain_params[param_name])
 
