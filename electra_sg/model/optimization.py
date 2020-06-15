@@ -302,7 +302,7 @@ class RecAdamOptimizer(AdamWeightDecayOptimizer):
                 print("before:", update)
                 # update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof * \
                 #          (param - self.pretrain_params[param_name])
-                update = anneal_lambda * update
+                update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof
                 print("after:", update)
 
             if self.weight_decay_rate > 0:
