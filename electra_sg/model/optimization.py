@@ -294,11 +294,13 @@ class RecAdamOptimizer(AdamWeightDecayOptimizer):
             # Instead we want ot decay the weights in a manner that doesn't interact
             # with the m/v parameters. This is equivalent to adding the square
             # of the weights to the loss with plain (non-momentum) SGD.
-            # if param_name in self.pretrain_params:
-            #     anneal_lambda = anneal_function(self.anneal_fun, global_step, self.anneal_k,
-            #                                     self.anneal_t0, self.anneal_w)
-            #     update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof * \
-            #              (param - self.pretrain_params[param_name])
+            anneal_lambda = anneal_function(self.anneal_fun, global_step, self.anneal_k,
+                                            self.anneal_t0, self.anneal_w)
+            if param_name in self.pretrain_params:
+                print(param)
+                print(self.pretrain_params[param_name])
+                update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof * \
+                         (param - self.pretrain_params[param_name])
 
             if self.weight_decay_rate > 0:
                 if self._do_use_weight_decay(param_name):
