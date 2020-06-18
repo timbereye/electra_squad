@@ -56,7 +56,7 @@ def create_optimizer(
             epsilon=1e-6,
             exclude_from_weight_decay=["LayerNorm", "layer_norm", "bias"],
             anneal_k=0.5,
-            anneal_t0=250,
+            anneal_t0=500,
             anneal_w=1.0,
             pretrain_cof=5000.0,
             pretrain_params=var_map
@@ -302,6 +302,7 @@ class RecAdamOptimizer(AdamWeightDecayOptimizer):
                 print("before:", update)
                 update = anneal_lambda * update + (self.anneal_w - anneal_lambda) * self.pretrain_cof * \
                          (param - self.pretrain_params[param_name])
+                update = tf.reshape(update, param.shape.as_list())
                 print("after:", update)
 
             if self.weight_decay_rate > 0:
